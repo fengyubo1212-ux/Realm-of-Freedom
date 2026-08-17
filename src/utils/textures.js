@@ -132,3 +132,47 @@ export function createRoadTexture() {
   tex.wrapS = tex.wrapT = THREE.RepeatWrapping
   return tex
 }
+
+// 纸飞机纸张贴图:米白基色 + 纤维纹理 + 中央折痕。UV 约定:u=0.5 为 x=0 中心线
+export function createPaperTexture() {
+  const size = 256
+  const canvas = document.createElement('canvas')
+  canvas.width = size
+  canvas.height = size
+  const ctx = canvas.getContext('2d')
+
+  ctx.fillStyle = '#f6f0e3'
+  ctx.fillRect(0, 0, size, size)
+
+  // 纤维噪声:细短横纹
+  for (let i = 0; i < 420; i++) {
+    const x = Math.random() * size
+    const y = Math.random() * size
+    ctx.globalAlpha = 0.05 + Math.random() * 0.09
+    ctx.strokeStyle = Math.random() > 0.5 ? '#efe6d2' : '#d8cdb4'
+    ctx.lineWidth = 0.6 + Math.random()
+    ctx.beginPath()
+    ctx.moveTo(x, y)
+    ctx.lineTo(x + (Math.random() - 0.5) * 6, y + (Math.random() - 0.5) * 2)
+    ctx.stroke()
+  }
+  ctx.globalAlpha = 1
+
+  // 中央折痕(竖直线,u=0.5)
+  ctx.fillStyle = 'rgba(150,138,112,0.35)'
+  ctx.fillRect(size / 2 - 1, 0, 2, size)
+
+  // 机头折叠处的暗色小三角(v≈0,即纸飞机头部)
+  ctx.fillStyle = 'rgba(150,138,112,0.18)'
+  ctx.beginPath()
+  ctx.moveTo(size * 0.4, 0)
+  ctx.lineTo(size * 0.6, 0)
+  ctx.lineTo(size * 0.5, size * 0.12)
+  ctx.closePath()
+  ctx.fill()
+
+  const tex = new THREE.CanvasTexture(canvas)
+  tex.colorSpace = THREE.SRGBColorSpace
+  tex.wrapS = tex.wrapT = THREE.ClampToEdgeWrapping
+  return tex
+}

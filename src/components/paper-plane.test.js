@@ -38,9 +38,9 @@ describe('AirPlane', () => {
     const wing = plane.getMesh().children.find((c) => c.userData.part === 'wing-left')
     expect(wing).toBeTruthy()
     plane.update(0) // sin(0)=0 → 翼角为基准角
-    expect(wing.rotation.x).toBeCloseTo(-Math.PI / 2, 5)
-    plane.update(Math.PI / 12) // 6*t = PI/2 → sin=1 → 摆幅 WING_FLAP=0.08
-    expect(wing.rotation.x).toBeCloseTo(-Math.PI / 2 + 0.08, 5)
+    expect(wing.rotation.x).toBeCloseTo(0, 5)
+    plane.update(Math.PI / 10) // 5*t = PI/2 → sin=1 → 摆幅 WING_FLAP=0.09
+    expect(wing.rotation.x).toBeCloseTo(0.09, 5)
   })
 
   it('playWingShake 不抛错', () => {
