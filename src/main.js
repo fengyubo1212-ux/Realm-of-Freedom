@@ -33,7 +33,7 @@ document.body.appendChild(renderer.domElement)
 
 const plane = new AirPlane(scene)
 plane.setPosition(0, 1.5, 0)
-plane.getMesh().scale.setScalar(2.2)
+plane.getMesh().scale.setScalar(3)
 
 // 触控目标,经 GSAP 平滑过渡(保留惯性,不直接跳变)
 const smooth = { height: 1.5, tilt: 0 }
@@ -70,21 +70,22 @@ function animate() {
   const dt = Math.min(timer.getDelta(), 0.05)
   const t = timer.getElapsed()
 
-  // 纸飞机:轻微上下漂浮 + 机翼摆动 + 随操控倾斜
-  const floatY = smooth.height + Math.sin(t * 1.6) * 0.07
+  // 纸飞机:轻微上下漂浮 + 机翼摆动 + 随操控倾斜 + 轻微横滚(镜头呼吸感)
+  const floatY = smooth.height + Math.sin(t * 1.6) * 0.09
   plane.update(t)
   plane.setPosition(0, floatY, 0)
   plane.setTilt(smooth.tilt + Math.sin(t * 1.1) * 0.02)
+  plane.getMesh().rotation.z = Math.sin(t * 0.5) * 0.03
 
   updateScene(dt)
 
-  // 相机:跟随飞机后上方,略向下看,带轻微浮动与微摆
-  const camTargetY = floatY + 2.1
-  const camTargetX = Math.sin(t * 0.4) * 0.5
+  // 相机:贴近飞机后上方,略向下俯视公路,带轻微浮动与微摆(驾驶/乘坐感)
+  const camTargetY = floatY + 1.7
+  const camTargetX = Math.sin(t * 0.4) * 0.4
   camera.position.x += (camTargetX - camera.position.x) * 0.05
   camera.position.y += (camTargetY - camera.position.y) * 0.05
-  camera.position.z = 8.5 + Math.sin(t * 0.3) * 0.3
-  camera.lookAt(0, floatY - 0.5, -45)
+  camera.position.z = 6.2 + Math.sin(t * 0.3) * 0.25
+  camera.lookAt(0, floatY - 1.1, -35)
 
   renderer.render(scene, camera)
   requestAnimationFrame(animate)

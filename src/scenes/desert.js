@@ -4,8 +4,8 @@ import { createSkyTexture, createSandTexture, createRoadTexture } from '../utils
 import { createCactus, createShrub, createRock, createDuneMound } from '../utils/props.js'
 
 const FOG_COLOR = '#e7b97e'
-const ROAD_SPEED = 9
-const SAND_SPEED = 5.5 // 沙地滚动略慢,形成视差
+const ROAD_SPEED = 11
+const SAND_SPEED = 6.8 // 沙地滚动略慢,形成视差
 const RIDGE_COLOR = '#d9a76e' // 远山脊色,介于沙地与雾之间,经雾模糊成剪影
 
 // 沙漠公路场景。相机跟随飞机的主逻辑在 main.js 的动画循环里
@@ -86,7 +86,7 @@ export function createDesertScene({ skybox = null, groundTexture = null, lowPowe
 }
 
 // 视差层:近处道具(快)沿路两侧滚动,中景沙丘(中速)陪衬,远山脊(慢/静态)作雾中剪影。
-// 公路 9 > 道具 8-10 > 沙地纹理 5.5 ≈ 沙丘 5 > 远山脊 0,构成由近到远的深度层次
+// 公路 11 > 道具 10-13 > 沙地纹理 6.8 ≈ 沙丘 6.2-7.2 > 远山脊 0,构成由近到远的深度层次
 function createParallax(scene, sandTex, lowPower) {
   const KILL_Z = 12 // 越过相机后回收
   const SPAWN_Z = -95
@@ -111,7 +111,7 @@ function createParallax(scene, sandTex, lowPower) {
     const s = 0.75 + Math.random() * 0.6
     mesh.scale.setScalar(s)
     scene.add(mesh)
-    props.push({ mesh, speed: 7.5 + Math.random() * 2.5 })
+    props.push({ mesh, speed: 10 + Math.random() * 3 })
   }
 
   // 中景沙丘:宽大、平缓,速度接近沙地纹理
@@ -122,7 +122,7 @@ function createParallax(scene, sandTex, lowPower) {
     placeAlong(m, -20 - Math.random() * 75)
     m.scale.setScalar(3 + Math.random() * 3)
     scene.add(m)
-    dunes.push({ mesh: m, speed: 4.8 + Math.random() * 1 })
+    dunes.push({ mesh: m, speed: 6.2 + Math.random() * 1 })
   }
 
   // 远山脊:横贯地平线的静置剪影,置于雾深处
