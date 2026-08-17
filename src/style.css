@@ -1,0 +1,45 @@
+@import "tailwindcss";
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: #000;
+  touch-action: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+canvas { display: block; }
+
+.overlay-loader {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #1a1a2e;
+  color: #fff;
+  font-size: 18px;
+  letter-spacing: 2px;
+  z-index: 10;
+  transition: opacity 0.6s ease;
+}
+.overlay-loader.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.overlay-music {
+  position: fixed;
+  right: 16px;
+  bottom: 24px;
+  width: 44px;
+  height: 44px;
+  border-radius: 9999px;
+  border: none;
+  background: rgba(255, 255, 255, 0.25);
+  color: #fff;
+  font-size: 20px;
+  z-index: 9;
+  backdrop-filter: blur(4px);
+}
