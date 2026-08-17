@@ -1,10 +1,12 @@
 import * as THREE from 'three'
 import { nextGroundOffset } from '../utils/ground.js'
 import { createSkyTexture, createSandTexture, createRoadTexture } from '../utils/textures.js'
+import { createCactus, createShrub, createRock, createDuneMound } from '../utils/props.js'
 
 const FOG_COLOR = '#e7b97e'
 const ROAD_SPEED = 9
 const SAND_SPEED = 5.5 // 沙地滚动略慢,形成视差
+const RIDGE_COLOR = '#d9a76e' // 远山脊色,介于沙地与雾之间,经雾模糊成剪影
 
 // 沙漠公路场景。相机跟随飞机的主逻辑在 main.js 的动画循环里
 export function createDesertScene({ skybox = null, groundTexture = null, lowPower = false } = {}) {
@@ -66,14 +68,92 @@ export function createDesertScene({ skybox = null, groundTexture = null, lowPowe
   }
   scene.add(sun)
 
+  road.receiveShadow = true
+  sand.receiveShadow = true
+
   const state = { roadTex, sandTex, roadOffset: 0, sandOffset: 0 }
+  const parallax = createParallax(scene, sandTex, lowPower)
 
   function update(delta) {
     state.roadOffset = nextGroundOffset(state.roadOffset, ROAD_SPEED, delta, 1)
     roadTex.offset.y = state.roadOffset
     state.sandOffset = nextGroundOffset(state.sandOffset, SAND_SPEED, delta, 1)
     sandTex.offset.y = state.sandOffset
+    parallax.update(delta)
   }
 
   return { scene, camera, update }
+}
+
+// 视差层:近处道具(快)沿路两侧滚动,中景沙丘(中速)陪衬,远山脊(慢/静态)作雾中剪影。
+// 公路 9 > 道具 8-10 > 沙地纹理 5.5 ≈ 沙丘 5 > 远山脊 0,构成由近到远的深度层次
+function createParallax(scene, sandTex, lowPower) {
+  const KILL_Z = 12 // 越过相机后回收
+  const SPAWN_Z = -95
+  const ridgeMat = new THREE.MeshStandardMaterial({ color: RIDGE_COLOR, roughness: 1 })
+  const duneMat = new THREE.MeshStandardMaterial({ map: sandTex, roughness: 1 })
+  const props = []
+
+  function placeAlong(mesh, spawnZ) {
+    const side = Math.random() > 0.5 ? 1 : -1
+    mesh.position.x = side * (5.5 + Math.random() * 9)
+    mesh.position.z = spawnZ
+    mesh.rotation.y = Math.random() * Math.PI * 2
+    return side
+  }
+
+  const KIND_BUILDERS = [createCactus, createShrub, createRock]
+  const propCount = lowPower ? 8 : 14
+  for (let i = 0; i < propCount; i++) {
+    const mesh = KIND_BUILDERS[i % KIND_BUILDERS.length]()
+    const z = -12 - Math.random() * 80
+    placeAlong(mesh, z)
+    const s = 0.75 + Math.random() * 0.6
+    mesh.scale.setScalar(s)
+    scene.add(mesh)
+    props.push({ mesh, speed: 7.5 + Math.random() * 2.5 })
+  }
+
+  // 中景沙丘:宽大、平缓,速度接近沙地纹理
+  const dunes = []
+  const duneCount = lowPower ? 4 : 8
+  for (let i = 0; i < duneCount; i++) {
+    const m = createDuneMound(duneMat)
+    placeAlong(m, -20 - Math.random() * 75)
+    m.scale.setScalar(3 + Math.random() * 3)
+    scene.add(m)
+    dunes.push({ mesh: m, speed: 4.8 + Math.random() * 1 })
+  }
+
+  // 远山脊:横贯地平线的静置剪影,置于雾深处
+  const ridge = []
+  for (let i = 0; i < 7; i++) {
+    const m = createDuneMound(ridgeMat)
+    const spread = 30 + Math.random() * 26
+    m.position.x = (i - 3) * (spread / 4) + (Math.random() - 0.5) * 8
+    m.position.z = -150 - Math.random() * 28
+    m.scale.setScalar(8 + Math.random() * 9)
+    scene.add(m)
+    ridge.push(m)
+  }
+
+  function update(delta) {
+    for (const p of props) {
+      p.mesh.position.z += p.speed * delta
+      if (p.mesh.position.z > KILL_Z) {
+        placeAlong(p.mesh, SPAWN_Z)
+        const s = 0.75 + Math.random() * 0.6
+        p.mesh.scale.setScalar(s)
+      }
+    }
+    for (const d of dunes) {
+      d.mesh.position.z += d.speed * delta
+      if (d.mesh.position.z > KILL_Z) {
+        placeAlong(d.mesh, SPAWN_Z)
+        d.mesh.scale.setScalar(3 + Math.random() * 3)
+      }
+    }
+  }
+
+  return { update }
 }
